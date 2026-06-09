@@ -26,16 +26,13 @@ load("../out/ldb8c9ainputs.RData")
 
 load("../out/ldb8c9aIndices.RData")
 
-
 SavePlot<-function(plotname,width=6,height=4){
   file <- file.path(paste0('../out/fitldb/fitDef/ldb8c9a_a4a_',plotname,'.png'))
   dev.print(png,file,width=width,height=height,units='in',res=600)
 }
 
 plot(stock@catch.n['0',])
-
 stock@catch.n['0',as.character(1986:1998)] <- NA
-
 
 # specify submodels defined as follows:
 
@@ -44,13 +41,13 @@ fmod <- ~factor(replace(age, age > 6, 6)) + factor(year)
 
 # Stock PARA ESTABLECER EL GRUPO PLUS EN 6, ESTO ES TEMPORAL PORQUE YA DEFINIRÉ EL GRUPO PLUS CUANDO CREE EL OBJETO STOCK AL PPIO AL LEER EL ARCHIVO DE DATOS
 # WG2026 option
-#stock <- setPlusGroup(stock, 6)
+stock <- setPlusGroup(stock, 6)
 # specify submodels defined as follows:
 #fmod, a formula object depicting the model for log fishing mortality at age.+
 #fmod <- ~factor(age) + factor(year) 
 
 #srmod a formula object depicting the model for log recruitment
-srmod <- ~factor(year) #this stock-recruitment model (srmod) is 'free'; i.e. there is no restriction on the estimated recruitment, based on the SSB. 
+srmod <- ~factor(year) #this stock-recruitment model (srmod) is 'free'; i.e. there is no restriction on the estimated recruitment, based on the SSB.
 
 # WG2026 option
 #srmod <-  ~bevholt(CV=0.4)  #s(year, k=15) 
