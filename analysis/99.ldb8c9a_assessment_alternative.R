@@ -87,19 +87,57 @@ plot(stk + simulate(fit05, 250))
 # time varying fleet selectivity + recruitment F + smooth qs + bevholt (scenario 06)
 #====================================================================
 fmod_tvs0 <- ~ s(age, k=7) + s(year, k=10) + te(age, year, k=c(3,5)) + s(year, k=7, by=as.numeric(age == 0 & year >2000))
-
-
 qmod_sq <- list(~s(age, k=7), ~s(age, k=6))
 srmod_bh <- ~bevholt(CV=0.1)
 
-fit06 <- sca(stk, idx[1], fmodel=fmod_tvs0, qmodel=qmod_sq[1])
-res06 <- residuals(fit06, stk, idx[1])
+fit06 <- sca(stk, idx, fmodel=fmod_tvs0, qmodel=qmod_sq)
+res06 <- residuals(fit06, stk, idx)
 plot(res06)
 cdiag06 <- computeCatchDiagnostics(fit06, stk)
 plot(cdiag06)
 plot(stk + simulate(fit06, 250))
 
+# retro
+n <- 4
+# list to hold data for retrospective fits
+nret <- as.list(1:n)
+stks <- FLStocks(lapply(nret, function(x){window(stk, end=(range(stk)["maxyear"]-x))}))
+idxs <- lapply(nret, function(x){window(idx, end=(range(idx)["maxyear"]-x))})
+# fit to each list element, note scas can be paralelized
+fits01 <- scas(stks, idxs, fmodel=list(fmod_tvs0), qmodel=list(qmod_sq), workers=n)
+# update stock object with fit
+stks <- stks + fits01
+# add candidate fit
+stks[[5]] <- stk + simulate(fit06, 250)
+plot(window(stks, start=2000)) + theme(legend.position = "none") + scale_colour_manual(values = rep("black", n+1))
 
+
+#====================================================================
+# time varying fleet selectivity + recruitment F + smooth qs + bevholt (scenario 06)
+# Campanha IEO changes in 2013, 2013 and 2003 are not used due to
+# prestige and change in vessel
+# recruitment constant before 1998
+# f constant at age 0 before 1998
+# block for IEO survey in 2013
+# blocks by age for PT survey 1-3 and 3+
+# plusgroup 7
+#====================================================================
+#
+# Esther, this one seems to work nicely
+#
+#====================================================================
+
+fmod_tvs0 <- ~ s(age, k=7, by=as.numeric(age != 0)) + s(year, k=10, by=as.numeric(age != 0)) + te(age, year, k=c(3,5), by=as.numeric(age != 0)) + s(year, k=7, by=as.numeric(age == 0 & year >1998))
+qmod_bp <- list(~s(age, k=7, by = breakpts(year, 2012)), ~s(age, k=3, by = breakpts(age, 3)))
+srmod_bp <- ~ s(year, k=10, by=as.numeric(year>1998))
+srmod_bh <- ~bevholt(CV=0.4)
+
+fit07 <- sca(stk, idx[1], fmodel=fmod_tvs0, qmodel=qmod_bp[1], srmodel = srmod_bh)
+res07 <- residuals(fit07, stk, idx[1])
+plot(res07)
+cdiag07 <- computeCatchDiagnostics(fit07, stk)
+plot(cdiag07)
+plot(stk + simulate(fit07, 250))
 
 # retro
 n <- 4
@@ -108,11 +146,11 @@ nret <- as.list(1:n)
 stks <- FLStocks(lapply(nret, function(x){window(stk, end=(range(stk)["maxyear"]-x))}))
 idxs <- lapply(nret, function(x){window(idx[1], end=(range(idx)["maxyear"]-x))})
 # fit to each list element, note scas can be paralelized
-fits01 <- scas(stks, idxs, fmodel=list(fmod_tvs0), qmodel=list(qmod_sq[1]), workers=n)
+fits07 <- scas(stks, idxs, fmodel=list(fmod_tvs0), qmodel=list(qmod_bp[1]), srmodel=list(srmod_bh), workers=n)
 # update stock object with fit
-stks <- stks + fits01
+stks <- stks + fits07
 # add candidate fit
-stks[[5]] <- stk + simulate(fit06, 250)
+stks[[5]] <- stk + simulate(fit07, 250)
 plot(window(stks, start=2000)) + theme(legend.position = "none") + scale_colour_manual(values = rep("black", n+1))
 
 
