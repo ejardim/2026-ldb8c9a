@@ -10,10 +10,10 @@ library(FLasher)
 load("../out/ldb8c9ainputs.RData")
 load("../out/ldb8c9aIndices.RData")
 
-stock@catch.n['0',as.character(1986:1998)] <- NA
+#stock@catch.n['0',as.character(1986:1998)] <- NA
 
 stk <- stock
-stk06 <- setPlusGroup(stk, 6)
+#stk06 <- setPlusGroup(stk, 6)
 idx <- tun.sel[c(1,4)]
 
 #====================================================================
