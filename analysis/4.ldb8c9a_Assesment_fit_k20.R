@@ -49,9 +49,9 @@ fmod_tvs0 <- ~ s(age, k=7, by=as.numeric(age != 0)) + s(year, k=20, by=as.numeri
 qmod_bp <- list(~s(age, k=7, by = breakpts(year, 2012)), ~s(age, k=3, by = breakpts(age, 3)))
 srmod_bp <- ~ s(year, k=10, by=as.numeric(year>1998))
 srmod_bh <- ~bevholt(CV=0.4)
+srmod <- factor(year)
 
-
-fit1 <- sca(stk, idx, fmodel=fmod_tvs0, qmodel=qmod_bp)
+fit1 <- sca(stk, idx, fmodel=fmod_tvs0, qmodel=qmod_bp, srmodel=srmod)
 
 res <- residuals(fit1, stk, idx)
 plot(res)
@@ -523,7 +523,7 @@ retro <- lapply(retro, function(x){
   yr <- range(stk)["maxyear"] - x
   stk <- window(stk, end=yr)
   tun <- window(idx, end=yr)
-  stk + sca(stk, tun, fmodel=fmod_tvs0, qmodel=qmod_bp)
+  stk + sca(stk, tun, fmodel=fmod_tvs0, qmodel=qmod_bp, srmodel=srmod
 })
 #HE TENIDO QUE PONER ESE FIT=MP SI NO NO IBA
 retro$"0" <- stk + fit1
