@@ -78,6 +78,26 @@ stks <- stk + fit1mc
 plot(stks)
 
 #--------------------------------------------------------------------
+# flat top F
+#--------------------------------------------------------------------
+
+fmod_tvs0 <- ~ s(replace(age, age>3, 4), k=4, by=as.numeric(age != 0)) + s(year, k=20, by=as.numeric(age != 0)) + ti(age, age>3, 4), year, k=c(3,5), by=as.numeric(age != 0)) + s(year, k=7, by=as.numeric(age == 0 & year >1998))
+qmod_bp <- list(~s(age, k=7, by = breakpts(year, 2012)), ~s(age, k=3))
+srmod <- ~ factor(year)
+
+fit1alt <- sca(stk, idx, fmodel=fmod_tvs0, qmodel=qmod_bp, srmodel=srmod)
+
+res <- residuals(fit1alt, stk, idx)
+plot(res)
+cdiag1 <- computeCatchDiagnostics(fit1alt, stk)
+plot(cdiag1)
+SavePlot('diagnosis',10,6)
+plot(stk + simulate(fit1alt, 250))
+
+plot(FLStocks(alt=stk + simulate(fit1alt, 250), orig=stk + simulate(fit1, 250)))
+
+#--------------------------------------------------------------------
+
 
 # Stock PARA ESTABLECER EL GRUPO PLUS EN 6, ESTO ES TEMPORAL PORQUE YA DEFINIRÉ EL GRUPO PLUS CUANDO CREE EL OBJETO STOCK AL PPIO AL LEER EL ARCHIVO DE DATOS
 #stock <- setPlusGroup(stock, 6)
