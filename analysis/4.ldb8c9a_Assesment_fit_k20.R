@@ -7,7 +7,7 @@ install.packages("FLCore", repos="http://flrproject.org/R")
 install.packages("FLa4a", repos="http://flrproject.org/R")
 install.packages("FLEDA", repos="http://flrproject.org/R")
 
-install.packages(c("msy", "ggplotFL", "FLa4a", "FLasher", "FLCore", "FLa4a", "FLEDA", "FLCore"),
+install.packages(c("FLa4a"),
                  repos=c(FLR="https://flr.r-universe.dev", CRAN="https://cloud.r-project.org"))
 
 library(devtools)
@@ -46,10 +46,10 @@ cn[cn == 0] <- 1e-6
 catch.n(stk) <- cn
 
 fmod_tvs0 <- ~ s(age, k=7, by=as.numeric(age != 0)) + s(year, k=20, by=as.numeric(age != 0)) + ti(age, year, k=c(3,5), by=as.numeric(age != 0)) + s(year, k=7, by=as.numeric(age == 0 & year >1998))
-qmod_bp <- list(~s(age, k=7, by = breakpts(year, 2012)), ~s(age, k=3, by = breakpts(age, 3)))
+qmod_bp <- list(~s(age, k=7, by = breakpts(year, 2012)), ~s(age, k=3))
 srmod_bp <- ~ s(year, k=10, by=as.numeric(year>1998))
 srmod_bh <- ~bevholt(CV=0.4)
-srmod <- factor(year)
+srmod <- ~ factor(year)
 
 fit1 <- sca(stk, idx, fmodel=fmod_tvs0, qmodel=qmod_bp, srmodel=srmod)
 
@@ -59,6 +59,25 @@ cdiag1 <- computeCatchDiagnostics(fit1, stk)
 plot(cdiag1)
 SavePlot('diagnosis',10,6)
 plot(stk + simulate(fit1, 250))
+
+#--------------------------------------------------------------------
+# MCMC (stochastic assessment)
+#--------------------------------------------------------------------
+mc <- SCAMCMC(mcmc=3000000, mcsave=10000)
+fit1mc <- sca(stk, idx, fmodel=fmod_tvs0, qmodel=qmod_bp, srmodel=srmod, fit = "MCMC", mcmc=mc)
+fit1mc <- burnin(fit1mc, 50)
+fit1mc.mc <- FLa4a::as.mcmc(fit1mc)
+
+# diagnostics
+densplot(fit1mc.mc[,1])
+traceplot(fit1mc.mc[,1])
+acfplot(fit1mc.mc)
+crosscorr.plot(fit1mc.mc)
+
+stks <- stk + fit1mc
+plot(stks)
+
+#--------------------------------------------------------------------
 
 # Stock PARA ESTABLECER EL GRUPO PLUS EN 6, ESTO ES TEMPORAL PORQUE YA DEFINIRÉ EL GRUPO PLUS CUANDO CREE EL OBJETO STOCK AL PPIO AL LEER EL ARCHIVO DE DATOS
 #stock <- setPlusGroup(stock, 6)
